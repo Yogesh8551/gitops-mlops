@@ -6,7 +6,7 @@ on:
     - java_generated_v2
 
 permissions:
-  contents: write # REQUIRED to push from GitHub Actions
+  contents: write
 
 jobs:
   compile:
@@ -16,7 +16,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0 # IMPORTANT: fetch all branches
+        fetch-depth: 0
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -24,11 +24,18 @@ jobs:
         distribution: temurin
         java-version: 17
 
+    # --------------------------------
+    # Compile Java (capture logs)
+    # --------------------------------
     - name: Compile Java files
+      id: compile
       run: |
         mkdir -p out
-        javac -d out HelloWorld.java
+        javac -d out HelloWorld.java 2> compile-error.log
 
+    # --------------------------------
+    # Push ONLY if compilation succeeds
+    # --------------------------------
     - name: Push compiled code to qa_validation_v1
       if: success()
       run: |
@@ -37,7 +44,10 @@ jobs:
 
         git fetch origin
 
-        # Checkout QA branch (create if missing)
+        # IMPORTANT: clean build output before checkout
+        rm -rf out
+
+        # Checkout QA branch safely
         if git show-ref --verify --quiet refs/remotes/origin/qa_validation_v1; then
           git checkout -B qa_validation_v1 origin/qa_validation_v1
         else
@@ -48,27 +58,26 @@ jobs:
         git add .
         git commit -m "Auto-compiled Java classes" || echo "Nothing to commit"
         git push origin qa_validation_v1
-      # -------------------------------
-      # Send EMAIL if compile FAILS
-      # -------------------------------
+
+    # --------------------------------
+    # Email notification on FAILURE
+    # --------------------------------
     - name: Send failure email to developer
       if: failure()
       uses: dawidd6/action-send-mail@v3
       with:
-        server_address: smtp.gmail.com
+        server_address: yogeshwar8551@gmail.com
         server_port: 587
         secure: false
         username: ${{ secrets.SMTP_USERNAME }}
         password: ${{ secrets.SMTP_PASSWORD }}
-
-        subject: "❌ Java CI Build Failed – gitops-mlops"
         to: ${{ secrets.ALERT_EMAIL }}
         from: "GitHub Actions <${{ secrets.SMTP_USERNAME }}>"
-
+        subject: "❌ Java CI Build Failed – gitops-mlops"
         body: |
           Hello Team,
 
-          ❌ Java compilation FAILED in GitHub Actions.
+          ❌ Java compilation FAILED.
 
           Repository: gitops-mlops
           Branch: java_generated_v2
@@ -81,4 +90,4 @@ jobs:
 
           Please fix the issue and push again.
 
-          – GitHub Actions CI  
+          – GitHub Actions CI
