@@ -25,15 +25,16 @@ jobs:
         java-version: 17
 
     # --------------------------------
-    # Compile Java (capture logs)
+    # Compile ALL Java files
     # --------------------------------
     - name: Compile Java files
       run: |
         mkdir -p out
-        javac -d out HelloWorld.java 2> compile-error.log
+        find . -name "*.java" > sources.txt
+        javac -d out @sources.txt 2> compile-error.log
 
     # --------------------------------
-    # Push ONLY if compilation succeeds
+    # Push source + compiled files
     # --------------------------------
     - name: Push compiled code to qa_validation_v1
       if: success()
@@ -43,12 +44,14 @@ jobs:
 
         git fetch origin
 
-        # ✅ Save compiled files before checkout
-        mkdir -p /tmp/build
-        cp out/*.class /tmp/build/
+        # ✅ Save source + class files
+        mkdir -p /tmp/build/src /tmp/build/bin
 
-        # ✅ Clean workspace to avoid checkout conflicts
-        rm -rf out compile-error.log
+        find . -name "*.java" -exec cp --parents {} /tmp/build/src/ \;
+        find out -name "*.class" -exec cp --parents {} /tmp/build/bin/ \;
+
+        # ✅ Clean workspace
+        rm -rf out compile-error.log sources.txt
 
         # Checkout QA branch
         if git show-ref --verify --quiet refs/remotes/origin/qa_validation_v1; then
@@ -57,11 +60,12 @@ jobs:
           git checkout -b qa_validation_v1
         fi
 
-        # ✅ Restore compiled files
-        cp /tmp/build/*.class .
-        echo "Build time: $(date -u)" > BUILD_INFO.txt
-        git add *.class BUILD_INFO.txt
-        git commit -m "Auto-compiled Java classes" || echo "Nothing to commit"
+        # ✅ Restore files (keep structure)
+        cp -r /tmp/build/src/* .
+        cp -r /tmp/build/bin/* .
+
+        git add **/*.java **/*.class
+        git commit -m "Auto-compiled Java source and class files" || echo "Nothing to commit"
         git push origin qa_validation_v1
 
     # --------------------------------
@@ -86,13 +90,10 @@ jobs:
 
           Repository: gitops-mlops
           Branch: java_generated_v2
-          Workflow: Compile Java and Push to QA Branch
 
-          🔎 Error details:
+          🔎 Error log:
           ----------------------------------
           $(cat compile-error.log)
           ----------------------------------
-
-          Please fix the issue and push again.
 
           – GitHub Actions CI
