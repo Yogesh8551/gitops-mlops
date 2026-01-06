@@ -30,6 +30,7 @@ jobs:
         javac -d out HelloWorld.java
 
     - name: Push compiled code to qa_validation_v1
+      if: success()
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
@@ -47,3 +48,37 @@ jobs:
         git add .
         git commit -m "Auto-compiled Java classes" || echo "Nothing to commit"
         git push origin qa_validation_v1
+      # -------------------------------
+      # Send EMAIL if compile FAILS
+      # -------------------------------
+    - name: Send failure email to developer
+      if: failure()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 587
+        secure: false
+        username: ${{ secrets.SMTP_USERNAME }}
+        password: ${{ secrets.SMTP_PASSWORD }}
+
+        subject: "❌ Java CI Build Failed – gitops-mlops"
+        to: ${{ secrets.ALERT_EMAIL }}
+        from: "GitHub Actions <${{ secrets.SMTP_USERNAME }}>"
+
+        body: |
+          Hello Team,
+
+          ❌ Java compilation FAILED in GitHub Actions.
+
+          Repository: gitops-mlops
+          Branch: java_generated_v2
+          Workflow: Compile Java and Push to QA Branch
+
+          🔎 Error details:
+          ----------------------------------
+          $(cat compile-error.log)
+          ----------------------------------
+
+          Please fix the issue and push again.
+
+          – GitHub Actions CI  
