@@ -24,18 +24,18 @@ jobs:
         distribution: temurin
         java-version: 17
 
-    # --------------------------------
+    # -------------------------------
     # Compile ALL Java files
-    # --------------------------------
+    # -------------------------------
     - name: Compile Java files
       run: |
         mkdir -p out
         find . -name "*.java" > sources.txt
         javac -d out @sources.txt 2> compile-error.log
 
-    # --------------------------------
+    # -------------------------------
     # Push source + compiled files
-    # --------------------------------
+    # -------------------------------
     - name: Push compiled code to qa_validation_v1
       if: success()
       run: |
@@ -44,34 +44,29 @@ jobs:
 
         git fetch origin
 
-        # Save files
-        mkdir -p /tmp/build/src /tmp/build/bin
-
-        find . -name "*.java" -exec cp --parents {} /tmp/build/src/ \;
-        find out -name "*.class" -exec cp --parents {} /tmp/build/bin/ \;
+        # Save files safely
+        mkdir -p /tmp/build/java /tmp/build/class
+        find . -name "*.java" -exec cp --parents {} /tmp/build/java/ \;
+        find out -name "*.class" -exec cp --parents {} /tmp/build/class/ \;
 
         # Clean workspace
         rm -rf out compile-error.log sources.txt
 
         # Checkout QA branch
-        if git show-ref --verify --quiet refs/remotes/origin/qa_validation_v1; then
-          git checkout -B qa_validation_v1 origin/qa_validation_v1
-        else
-          git checkout -b qa_validation_v1
-        fi
+        git checkout -B qa_validation_v1 origin/qa_validation_v1
 
         # Restore files
-        cp -r /tmp/build/src/* .
-        cp -r /tmp/build/bin/* .
+        cp -r /tmp/build/java/* .
+        cp -r /tmp/build/class/* .
 
-        # Add files SAFELY
-        git add $(find . -name "*.java" -o -name "*.class")
+        # SAFE ADD (no globbing)
+        git add -A
         git commit -m "Auto-compiled Java source and class files" || echo "Nothing to commit"
         git push origin qa_validation_v1
 
-    # --------------------------------
-    # Email notification on FAILURE
-    # --------------------------------
+    # -------------------------------
+    # Email on FAILURE
+    # -------------------------------
     - name: Send failure email to developer
       if: failure()
       uses: dawidd6/action-send-mail@v3
