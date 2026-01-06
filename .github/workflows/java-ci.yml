@@ -53,11 +53,11 @@ jobs:
 
     - name: Push compiled code to compiled_release_v1
       run: |
-        git config user.name "github-actions"
-        git config user.email "github-actions@github.com"
+        git config user.name "yogesh8551"
+        git config user.email "yogeshwar8551@gmail.com"
 
-        git checkout compiled_release_v1
+        git checkout qa_validation_v1
         cp -r out/*.class .
         git add .
         git commit -m "Auto-compiled Java classes"
-        git push origin compiled_release_v1
+        git push origin qa_validation_v1
