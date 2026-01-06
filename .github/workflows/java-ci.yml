@@ -67,6 +67,32 @@ jobs:
     # -------------------------------
     # Email on FAILURE
     # -------------------------------
+    # - name: Send failure email to developer
+    #   if: failure()
+    #   uses: dawidd6/action-send-mail@v3
+    #   with:
+    #     server_address: smtp.gmail.com
+    #     server_port: 587
+    #     secure: false
+    #     username: ${{ secrets.SMTP_USERNAME }}
+    #     password: ${{ secrets.SMTP_PASSWORD }}
+    #     to: ${{ secrets.ALERT_EMAIL }}
+    #     from: "GitHub Actions <${{ secrets.SMTP_USERNAME }}>"
+    #     subject: "❌ Java CI Build Failed – gitops-mlops"
+    #     body: |
+    #       Hello Team,
+
+    #       ❌ Java compilation FAILED.
+
+    #       Repository: gitops-mlops
+    #       Branch: java_generated_v2
+
+    #       🔎 Error log:
+    #       ----------------------------------
+    #       $(cat compile-error.log)
+    #       ----------------------------------
+
+    #       – GitHub Actions CI
     - name: Send failure email to developer
       if: failure()
       uses: dawidd6/action-send-mail@v3
@@ -88,8 +114,8 @@ jobs:
           Branch: java_generated_v2
 
           🔎 Error log:
-          ----------------------------------
-          $(cat compile-error.log)
-          ----------------------------------
+                ----------------------------------
+               ${{ hashFiles('compile-error.log') != '' && format('{0}', join(fromJson('["See attached log"]'), '\n')) || 'No error log generated' }}
+                ----------------------------------
 
-          – GitHub Actions CI
+            – GitHub Actions CI 
