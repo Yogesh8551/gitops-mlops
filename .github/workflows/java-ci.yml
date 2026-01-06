@@ -3,7 +3,7 @@ name: Java Build CI
 on:
   push:
     branches:
-    - main # triggers when code is pushed to main
+    - java_generated_v2
 
 jobs:
   build:
