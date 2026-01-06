@@ -44,13 +44,13 @@ jobs:
 
         git fetch origin
 
-        # ✅ Save source + class files
+        # Save files
         mkdir -p /tmp/build/src /tmp/build/bin
 
         find . -name "*.java" -exec cp --parents {} /tmp/build/src/ \;
         find out -name "*.class" -exec cp --parents {} /tmp/build/bin/ \;
 
-        # ✅ Clean workspace
+        # Clean workspace
         rm -rf out compile-error.log sources.txt
 
         # Checkout QA branch
@@ -60,11 +60,12 @@ jobs:
           git checkout -b qa_validation_v1
         fi
 
-        # ✅ Restore files (keep structure)
+        # Restore files
         cp -r /tmp/build/src/* .
         cp -r /tmp/build/bin/* .
 
-        git add **/*.java **/*.class
+        # Add files SAFELY
+        git add $(find . -name "*.java" -o -name "*.class")
         git commit -m "Auto-compiled Java source and class files" || echo "Nothing to commit"
         git push origin qa_validation_v1
 
