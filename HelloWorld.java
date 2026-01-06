@@ -3,8 +3,6 @@ public class HelloWorld {
         // This line prints the message to the console
         System.out.println("Hello, World!");
         System.out.println("hi i am yogeshwar");
-        System.out.println("and i am an engineer");
-        //end of the program
-        System.out.println("end of the program");
+        System.out.println("hi i am Rushikesh" );
     }
-}
+    }
