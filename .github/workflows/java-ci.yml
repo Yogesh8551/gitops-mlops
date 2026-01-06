@@ -28,7 +28,6 @@ jobs:
     # Compile Java (capture logs)
     # --------------------------------
     - name: Compile Java files
-      id: compile
       run: |
         mkdir -p out
         javac -d out HelloWorld.java 2> compile-error.log
@@ -44,8 +43,8 @@ jobs:
 
         git fetch origin
 
-        # IMPORTANT: clean build output before checkout
-        rm -rf out
+        # 🚨 CLEAN ALL UNTRACKED FILES BEFORE CHECKOUT
+        rm -rf out compile-error.log
 
         # Checkout QA branch safely
         if git show-ref --verify --quiet refs/remotes/origin/qa_validation_v1; then
