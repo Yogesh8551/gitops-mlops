@@ -59,8 +59,8 @@ jobs:
 
         # ✅ Restore compiled files
         cp /tmp/build/*.class .
-
-        git add *.class
+        echo "Build time: $(date -u)" > BUILD_INFO.txt
+        git add *.class BUILD_INFO.txt
         git commit -m "Auto-compiled Java classes" || echo "Nothing to commit"
         git push origin qa_validation_v1
 
