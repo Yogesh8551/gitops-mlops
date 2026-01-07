@@ -4,6 +4,7 @@ public class HelloWorld {
         System.out.println("Hello, World!");
         System.out.println("hi i am yogeshwar");
         System.out.println("hi i am Rushikesh");
-        System.out.println("THIS IS THE DEMO PURPOSE")
+        System.out.println("THIS IS THE DEMO PURPOSE");
+        System.out.println("hi i am jay");
     }
 }
